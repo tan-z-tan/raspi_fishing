@@ -2,9 +2,9 @@ import cv2
 import time
 
 # for debug
-# from IPython import embed
-# from IPython.terminal.embed import InteractiveShellEmbed
-# ishell = InteractiveShellEmbed()
+from IPython import embed
+from IPython.terminal.embed import InteractiveShellEmbed
+ishell = InteractiveShellEmbed()
 
 WIDTH = 320
 HEIGHT = 240
@@ -41,6 +41,8 @@ while(cap.isOpened()):
     fps += 1
 
     # show edge detection
+    edge_image = edge(frame)
+    #ishell()
     cv2.imshow("edge", edge(frame))
 
     # exit if 'q' is pressed
