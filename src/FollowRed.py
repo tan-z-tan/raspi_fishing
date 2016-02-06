@@ -16,25 +16,16 @@ def evaluate(p):
     g, b, r = frame[p[0]][p[1]]
     red_degree = 2 * r - g - b
     # return np.exp(red_degree)
-    return max(red_degree + 10, 0)
+    return max(red_degree + 10, 0) + 1
 
 def next_state(p):
-    next_vec = np.random.randn(2)
-    next_y = p[0] + int(20 * next_vec[0])
-    if next_y < 0:
-        next_y = HEIGHT - 1
-    if next_y >= HEIGHT:
-        next_y = 0
-    next_x = p[1] + int(20 * next_vec[1])
-    if next_x < 0:
-        next_x = WIDTH - 1
-    if next_x >= WIDTH:
-        next_x = 0
+    next_vec = np.random.randn(2) * [10, 10]
+    next_y = (p[0] + int(next_vec[0]) + 2 * HEIGHT + 1) % HEIGHT - 1
+    next_x = (p[1] + int(next_vec[1]) + 2 * WIDTH + 1) % WIDTH - 1
     return [next_y, next_x]
 
 def initial_state(_):
-    rand_state = np.random.rand(2)
-    return [int(rand_state[0] * HEIGHT), int(rand_state[1] * WIDTH)]
+    return np.random.rand(2) * [HEIGHT, WIDTH]
 
 pf = ParticleFilter(size = 1000, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
 
@@ -85,8 +76,8 @@ while(cap.isOpened()):
 
     pf.step()
     for p in pf.particle_list:
-        y = p[0]
-        x = p[1]
+        y = int(p[0])
+        x = int(p[1])
         cv2.rectangle(frame, (x, y), (x + 1, y), (0, 255, 0), 1)
     estimate = pf.estimate();
     print "Estimate ", pf.current_step, estimate
