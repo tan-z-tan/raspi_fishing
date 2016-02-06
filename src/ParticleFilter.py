@@ -1,5 +1,5 @@
 import random
-import numpy
+import numpy as np
 
 class ParticleFilter:
 	def __init__(self, size = 100, evaluate = None, next_state = None, initial_state = None):
@@ -18,8 +18,8 @@ class ParticleFilter:
 
 	def resampling(self, particle_list, likelihood_list):
 		samples = []
-		random_list = sorted(map(lambda x: random.random() * sum(likelihood_list), range(self.size)))
-		random_list.append(float('inf'))
+		random_list = np.sort(np.random.rand(self.size + 1) * sum(likelihood_list))
+		random_list[self.size] = float('inf')
 
 		reached_index = 0
 		cumulative_value = 0
