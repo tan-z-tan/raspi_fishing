@@ -18,8 +18,7 @@ class ParticleFilter:
 
 	def resampling(self, particle_list, likelihood_list):
 		samples = []
-		likelihood_sum = sum(likelihood_list)
-		random_list = sorted(map(lambda x: random.random() * likelihood_sum, range(self.size)))
+		random_list = sorted(map(lambda x: random.random() * sum(likelihood_list), range(self.size)))
 		random_list.append(float('inf'))
 
 		reached_index = 0
@@ -45,11 +44,12 @@ class ParticleFilter:
 		self.particle_list = map(self.initial_state, range(self.size))
 
 if __name__ == "__main__":
+	# this sample tracks a fixed point (0.2, 0.8)
 	evaluate = lambda p: 1 / (1 + abs(p[0] - 0.2)) + 1 / (1 + abs(p[1] - 0.8))
 	next_state = lambda p: [p[0] + random.random() * 0.2 - 0.1, p[1] + random.random() * 0.2 - 0.1]
 	initial_state = lambda p: [random.random(), random.random()]
 
-	pf = ParticleFilter(size = 1000, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
+	pf = ParticleFilter(size = 100, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
 
 	pf.initialize()
 	for i in range(100):
