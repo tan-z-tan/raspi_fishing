@@ -55,6 +55,7 @@ if camera_check() is False:
 ## start following
 last_sec = time.ctime()
 fps = 0
+display = True
 
 while(cap.isOpened()):
     # read 1 frame
@@ -75,15 +76,17 @@ while(cap.isOpened()):
     # cv2.imshow("edge", edge(frame))
 
     pf.step()
-    for p in pf.particle_list:
-        y = int(p[0])
-        x = int(p[1])
-        cv2.rectangle(frame, (x, y), (x + 1, y), (0, 255, 0), 1)
     estimate = pf.estimate();
     print "Estimate ", pf.current_step, estimate
-    cv2.rectangle(frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
 
-    cv2.imshow("video", frame)
+    if display:
+        for p in pf.particle_list:
+            y = int(p[0])
+            x = int(p[1])
+            cv2.rectangle(frame, (x, y), (x + 1, y), (0, 255, 0), 1)
+        cv2.rectangle(frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
+
+        cv2.imshow("video", frame)
 
     # exit if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
