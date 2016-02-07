@@ -47,7 +47,10 @@ class CVProcess(threading.Thread):
         self.cap = cv2.VideoCapture(0)
 
         # Capture Camera
-        if self.cap.isOpened() and self.cap.set(3, WIDTH) and self.cap.set(4, HEIGHT):
+        if self.cap.isOpened():
+            self.cap.set(3, WIDTH)
+            self.cap.set(4, HEIGHT)
+            time.sleep(2) # camera might take 1 or 2 second to change parameters
             return True
         else:
             raise("Camera is not available.")
