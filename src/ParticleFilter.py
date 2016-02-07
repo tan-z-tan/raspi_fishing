@@ -32,13 +32,7 @@ class ParticleFilter:
 		return samples
 
 	def estimate(self):
-		average = [0.0, 0.0]
-		for p in self.particle_list:
-			average[0] += p[0]
-			average[1] += p[1]
-		average[0] /= self.size
-		average[1] /= self.size
-		return average
+		return np.mean(self.particle_list, 0)
 
 	def initialize(self):
 		self.particle_list = map(self.initial_state, range(self.size))
