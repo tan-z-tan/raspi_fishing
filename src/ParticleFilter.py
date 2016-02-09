@@ -12,12 +12,12 @@ class ParticleFilter:
 
 	def step(self):
 		self.current_step += 1
-		next_particles = map(self.next_state, self.particle_list)
-		likelihood_list = map(self.evaluate, next_particles)
+		next_particles = np.apply_along_axis(self.next_state, 1, self.particle_list)
+		likelihood_list = np.apply_along_axis(self.evaluate, 1, next_particles)
 		self.particle_list = self.resampling(next_particles, likelihood_list)
 
 	def resampling(self, particle_list, likelihood_list):
-		samples = []
+		samples = np.zeros([self.size, 2])
 		random_list = np.sort(np.random.rand(self.size + 1) * sum(likelihood_list))
 		random_list[self.size] = float('inf')
 
@@ -26,7 +26,7 @@ class ParticleFilter:
 		for l, p in zip(likelihood_list, particle_list):
 			cumulative_value += l
 			while( random_list[reached_index] < cumulative_value and reached_index < self.size ):
-				samples.append(p)
+				samples[reached_index] = p
 				reached_index += 1
 
 		return samples
