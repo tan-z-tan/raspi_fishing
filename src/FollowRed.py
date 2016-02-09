@@ -102,8 +102,8 @@ if __name__ == "__main__":
         print "Estimate ", pf.current_step, estimate
 
         # exit if 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        # break
 
     # release all resources
     cap.release()
