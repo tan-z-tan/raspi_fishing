@@ -41,7 +41,9 @@ pf.initialize()
 
 ### Hit Detection ###
 def hit(past_point_list):
-    return np.var(past_point_list) > 10
+    average_move = np.var(past_point_list) / len(past_point_list)
+    print "Average_move", average_move
+    return average_move > 40
 
 def camera_check():
     # Capture Camera
@@ -82,14 +84,14 @@ if __name__ == "__main__":
 
         pf.step()
         estimate = pf.estimate()
-        last_point_list.append(estimate)
-        if len(last_point_list) > 5:
-            last_point_list.popleft()
+        last_point_list.insert(0, estimate)
+        if len(last_point_list) >= 5:
+            last_point_list = last_point_list[0:5]
             if hit(last_point_list):
                 print "Hit!!!!"
                 motor.rotate_right(1)
 
-        print "Estimate ", pf.current_step, estimate
+        #print "Estimate ", pf.current_step, estimate
 
         if display and fps == 1:
             for p in pf.particle_list:
