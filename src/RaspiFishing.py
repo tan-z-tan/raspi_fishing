@@ -97,7 +97,7 @@ if __name__ == "__main__":
             last_point_list.insert(0, estimate)
             if len(last_point_list) >= 5:
                 last_point_list = last_point_list[0:5]
-                if step > 100 and hit(last_point_list):
+                if step > 20 and hit(last_point_list):
                     print "Hit!!!!"
                     mode = "fish"
                     
