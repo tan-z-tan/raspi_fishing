@@ -2,7 +2,7 @@ import cv2
 import time
 import numpy as np
 from ParticleFilter import ParticleFilter 
-#from Motor import Motor
+from Motor import Motor
 
 # for debug
 from IPython import embed
@@ -46,7 +46,8 @@ def hit(past_point_list):
         average_move += np.linalg.norm(past_point_list[i-1] - past_point_list[i]) / len(past_point_list)
 
     print "Average_move", average_move
-    return average_move > 3
+    #return average_move > 3
+    return average_move > 10
 
 def camera_check():
     # Capture Camera
@@ -65,8 +66,8 @@ if __name__ == "__main__":
     # mode
     mode = "detect" # detect, fish, wait
 
-    # motor = Motor()
-    status = "detect" # "", "fish", "wait"
+    motor = Motor()
+    status = "detect" # "attract", "fish", "wait"
     
     ## start following
     last_sec = time.ctime()
@@ -111,8 +112,13 @@ if __name__ == "__main__":
                 cv2.rectangle(frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
 
                 cv2.imshow("video", frame)
+        elif mode == "attract":
+            motor.rotate_left(0.5)
+            motor.rotate_right(0.5)
+            mode = "detect"
+            step = 0
         elif mode == "fish":
-            # motor.rotate_right(5)
+            motor.rotate_left(5)
             mode = "wait"
         else:
             # start detecting if 's' is pressed
@@ -121,7 +127,7 @@ if __name__ == "__main__":
                 step = 0
 
     # stop motor
-    # motor.stop()
+    motor.stop()
 
     # close and finish
     cap.release()
