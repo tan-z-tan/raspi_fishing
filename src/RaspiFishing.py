@@ -39,6 +39,10 @@ pf = ParticleFilter(size = 200, evaluate = evaluate, next_state = next_state, in
 pf.initialize()
 ### end PF
 
+### Hit Detection ###
+def hit(past_point_list):
+    return np.var(past_point_list) > 10
+
 def camera_check():
     # Capture Camera
     if cap.isOpened() is False:
@@ -54,9 +58,12 @@ if __name__ == "__main__":
     if camera_check() is False:
         exit
 
+    motor = Motor()
+
     ## start following
     last_sec = time.ctime()
     fps = 0
+    last_point_list = []
     display = True
 
     while(cap.isOpened()):
@@ -74,7 +81,14 @@ if __name__ == "__main__":
         fps += 1
 
         pf.step()
-        estimate = pf.estimate();
+        estimate = pf.estimate()
+        last_point_list.append(estimate)
+        if len(last_point_list) > 5:
+            last_point_list.popleft()
+            if hit(last_point_list):
+                print "Hit!!!!"
+                motor.rotate_right(1)
+
         print "Estimate ", pf.current_step, estimate
 
         if display and fps == 1:
