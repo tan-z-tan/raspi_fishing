@@ -1,7 +1,6 @@
 import cv2
 import time
 import numpy as np
-import threading
 from ParticleFilter import ParticleFilter 
 
 # for debug
@@ -34,66 +33,34 @@ def next_state(p):
 def initial_state(_):
     return np.random.rand(2) * [HEIGHT, WIDTH]
 
-pf = ParticleFilter(size = 100, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
+pf = ParticleFilter(size = 500, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
 
 pf.initialize()
 ### end PF
 
-class CVProcess(threading.Thread):
-    def __init__(self, window_name, pf):
-        threading.Thread.__init__(self)
-        threading.Thread.daemon = True
-        self.window_name = window_name
-        self.pf = pf
-        self.frame = None
-
-        self.available = self.camera_check()
-
-    def camera_check(self):
-        self.cap = cv2.VideoCapture(0)
-
-        # Capture Camera
-        if self.cap.isOpened():
-            self.cap.set(3, WIDTH)
-            self.cap.set(4, HEIGHT)
-            time.sleep(2) # camera might take 1 or 2 second to change parameters
-            return True
-        else:
-            raise("Camera is not available.")
-            return False
-
-    def run(self):
-        while True:
-            if self.frame != None:
-                self.show_frame(self.frame)
-            time.sleep(0.25)
-
-    def show_frame(self, frame):
-        current_frame = frame
-        for p in self.pf.particle_list:
-            y = int(p[0])
-            x = int(p[1])
-            cv2.rectangle(current_frame, (x, y), (x + 1, y), (0, 255, 0), 1)
-            estimate = self.pf.estimate()
-        cv2.rectangle(current_frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
-        cv2.imshow(self.window_name, current_frame)
-
-    def get_frame(self):
-        status, frame = self.cap.read()
-        self.frame = frame
-        return status, frame
+def camera_check():
+    # Capture Camera
+    if cap.isOpened() is False:
+        return False
+        raise("Camera is not available.")
+    cap.set(3, WIDTH)
+    cap.set(4, HEIGHT)
+    time.sleep(2) # camera might take 1 or 2 second to change parameters
+    return True
 
 if __name__ == "__main__":
-    cv_process = CVProcess('tracking', pf)
-    if cv_process.available == False:
+    cap = cv2.VideoCapture(0)
+    if camera_check() is False:
         exit
 
+    ## start following
     last_sec = time.ctime()
     fps = 0
-    cv_process.start()
+    display = True
 
-    while True:
-        ret, frame = cv_process.get_frame()
+    while(cap.isOpened()):
+        # read 1 frame
+        ret, frame = cap.read()
         if ret == False:
             continue
 
@@ -102,19 +69,26 @@ if __name__ == "__main__":
             print("Fps", fps)
             fps = 0
             last_sec = t
-            # cv_process.show_frame(frame)
 
         fps += 1
 
         pf.step()
-
-        estimate = pf.estimate()
+        estimate = pf.estimate();
         print "Estimate ", pf.current_step, estimate
 
-        # exit if 'q' is pressed
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        # break
+        if display:
+            for p in pf.particle_list:
+                y = int(p[0])
+                x = int(p[1])
+                cv2.rectangle(frame, (x, y), (x + 1, y), (0, 255, 0), 1)
+            cv2.rectangle(frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
 
-    # release all resources
+            cv2.imshow("video", frame)
+
+        # exit if 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # close and finish
     cap.release()
     cv2.destroyAllWindows()
