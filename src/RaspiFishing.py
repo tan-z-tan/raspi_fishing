@@ -41,9 +41,12 @@ pf.initialize()
 
 ### Hit Detection ###
 def hit(past_point_list):
-    average_move = np.var(past_point_list) / len(past_point_list)
+    average_move = 0
+    for i in range(1, len(past_point_list)):
+        average_move += np.linalg.norm(past_point_list[i-1] - past_point_list[i]) / len(past_point_list)
+
     print "Average_move", average_move
-    return average_move > 1000
+    return average_move > 3
 
 def camera_check():
     # Capture Camera
