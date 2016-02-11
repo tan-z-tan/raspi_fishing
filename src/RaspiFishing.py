@@ -59,19 +59,20 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     if camera_check() is False:
         exit
-
+    
     motor = Motor()
-
+    status = "detect" # "", "fish", "wait"
+    
     ## start following
     last_sec = time.ctime()
     fps = 0
     last_point_list = []
-    display = True
+    display = False
 
     while(cap.isOpened()):
         # read 1 frame
         ret, frame = cap.read()
-        if ret == False:
+        if ret == False and mode != "detect":
             continue
 
         t = time.ctime()
@@ -89,8 +90,10 @@ if __name__ == "__main__":
             last_point_list = last_point_list[0:5]
             if hit(last_point_list):
                 print "Hit!!!!"
-                motor.rotate_right(1)
-
+                mode = "fish"
+                motor.rotate_right(5)
+                mode = "wait"
+                
         #print "Estimate ", pf.current_step, estimate
 
         if display and fps == 1:
