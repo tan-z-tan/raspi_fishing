@@ -14,10 +14,16 @@ HEIGHT = 240
 
 ### Define function required for PF tracking
 def evaluate(p):
+    sigma = 50.0;
     g, b, r = frame[p[0]][p[1]]
-    red_degree = 2 * r - g - b
-    # return np.exp(red_degree)
-    return max(red_degree + 10, 0) + 1
+    if False:
+        dist = np.sqrt (b * b + g * g + (255.0 - r) * (255.0 - r));
+        val = 1.0 / (np.sqrt (2.0 * np.pi) * sigma) * np.exp (-dist * dist / (2.0 * sigma * sigma));
+        return val
+    else:
+        red_degree = -2 * r - g - b
+        # return 1.0 / (np.sqrt(2 * np.pi) * sigma) * np.exp(-red_degree / 2 * sigma * sigma)
+        return max(red_degree + 10, 0) + 1
 
 def next_state(p):
     next_vec = np.random.randn(2) * [10, 10]
@@ -28,7 +34,7 @@ def next_state(p):
 def initial_state(_):
     return np.random.rand(2) * [HEIGHT, WIDTH]
 
-pf = ParticleFilter(size = 1000, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
+pf = ParticleFilter(size = 100, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
 
 pf.initialize()
 ### end PF
@@ -59,15 +65,18 @@ class CVProcess(threading.Thread):
     def run(self):
         while True:
             if self.frame != None:
-                current_frame = self.frame
-                for p in self.pf.particle_list:
-                    y = int(p[0])
-                    x = int(p[1])
-                    cv2.rectangle(current_frame, (x, y), (x + 1, y), (0, 255, 0), 1)
-                estimate = self.pf.estimate()
-                cv2.rectangle(current_frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
-                cv2.imshow(self.window_name, current_frame)
-            time.sleep(0.5)
+                self.show_frame(self.frame)
+            time.sleep(0.25)
+
+    def show_frame(self, frame):
+        current_frame = frame
+        for p in self.pf.particle_list:
+            y = int(p[0])
+            x = int(p[1])
+            cv2.rectangle(current_frame, (x, y), (x + 1, y), (0, 255, 0), 1)
+            estimate = self.pf.estimate()
+        cv2.rectangle(current_frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
+        cv2.imshow(self.window_name, current_frame)
 
     def get_frame(self):
         status, frame = self.cap.read()
@@ -93,6 +102,7 @@ if __name__ == "__main__":
             print("Fps", fps)
             fps = 0
             last_sec = t
+            # cv_process.show_frame(frame)
 
         fps += 1
 
