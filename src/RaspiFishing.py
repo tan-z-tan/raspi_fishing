@@ -2,7 +2,7 @@ import cv2
 import time
 import numpy as np
 from ParticleFilter import ParticleFilter 
-from Motor import Motor
+#from Motor import Motor
 
 # for debug
 from IPython import embed
@@ -34,7 +34,7 @@ def next_state(p):
 def initial_state(_):
     return np.random.rand(2) * [HEIGHT, WIDTH]
 
-pf = ParticleFilter(size = 200, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
+pf = ParticleFilter(size = 1000, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
 
 pf.initialize()
 ### end PF
@@ -43,7 +43,7 @@ pf.initialize()
 def hit(past_point_list):
     average_move = np.var(past_point_list) / len(past_point_list)
     print "Average_move", average_move
-    return average_move > 40
+    return average_move > 1000
 
 def camera_check():
     # Capture Camera
@@ -59,55 +59,66 @@ if __name__ == "__main__":
     cap = cv2.VideoCapture(0)
     if camera_check() is False:
         exit
-    
-    motor = Motor()
+    # mode
+    mode = "detect" # detect, fish, wait
+
+    # motor = Motor()
     status = "detect" # "", "fish", "wait"
     
     ## start following
     last_sec = time.ctime()
     fps = 0
     last_point_list = []
-    display = False
+    display = True
+    step = 0
 
     while(cap.isOpened()):
-        # read 1 frame
-        ret, frame = cap.read()
-        if ret == False and mode != "detect":
-            continue
+        step += 1
 
-        t = time.ctime()
-        if t != last_sec:
-            print("Fps", fps)
-            fps = 0
-            last_sec = t
+        if mode == "detect":
+            # read 1 frame
+            ret, frame = cap.read()
+            if ret == False:
+                continue
 
-        fps += 1
+            t = time.ctime()
+            if t != last_sec:
+                print("Fps", fps)
+                fps = 0
+                last_sec = t
 
-        pf.step()
-        estimate = pf.estimate()
-        last_point_list.insert(0, estimate)
-        if len(last_point_list) >= 5:
-            last_point_list = last_point_list[0:5]
-            if hit(last_point_list):
-                print "Hit!!!!"
-                mode = "fish"
-                motor.rotate_right(5)
-                mode = "wait"
-                
-        #print "Estimate ", pf.current_step, estimate
+            fps += 1
 
-        if display and fps == 1:
-            for p in pf.particle_list:
-                y = int(p[0])
-                x = int(p[1])
-                cv2.rectangle(frame, (x, y), (x + 1, y), (0, 255, 0), 1)
-            cv2.rectangle(frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
+            pf.step()
+            estimate = pf.estimate()
+            last_point_list.insert(0, estimate)
+            if len(last_point_list) >= 5:
+                last_point_list = last_point_list[0:5]
+                if step > 100 and hit(last_point_list):
+                    print "Hit!!!!"
+                    mode = "fish"
+                    
+            #print "Estimate ", pf.current_step, estimate
 
-            cv2.imshow("video", frame)
+            if display and fps == 1:
+                for p in pf.particle_list:
+                    y = int(p[0])
+                    x = int(p[1])
+                    cv2.rectangle(frame, (x, y), (x + 1, y), (0, 255, 0), 1)
+                cv2.rectangle(frame, (int(estimate[1]), int(estimate[0])), (int(estimate[1]) + 1, int(estimate[0]) + 1), (0, 0, 255), 3)
 
-        # exit if 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+                cv2.imshow("video", frame)
+        elif mode == "fish":
+            # motor.rotate_right(5)
+            mode = "wait"
+        else:
+            # start detecting if 's' is pressed
+            if cv2.waitKey(10) & 0xFF == ord('s'):
+                mode = "detect"
+                step = 0
+
+    # stop motor
+    # motor.stop()
 
     # close and finish
     cap.release()
