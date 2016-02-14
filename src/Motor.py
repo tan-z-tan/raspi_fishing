@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import sys
 
 class Motor:
 	def __init__(self):
@@ -36,9 +37,17 @@ class Motor:
                 GPIO.cleanup()
 
 if __name__ == "__main__":
-	motor = Motor()
+        motor = Motor()
+        if sys.argv[1] == "up":
+                motor.rotate_left(int(sys.argv[2]))
+        elif sys.argv[1] == "down":
+                motor.rotate_right(int(sys.argv[2]))
+        else:
+                print sys.argv
+                print ARGV
+	#motor = Motor()
 
-        motor.init_gpio()
-	motor.rotate_right(2)
-	motor.rotate_left(2)
-	motor.cleanup()
+        #motor.init_gpio()
+	#motor.rotate_right(2)
+	#motor.rotate_left(2)
+	#motor.cleanup()

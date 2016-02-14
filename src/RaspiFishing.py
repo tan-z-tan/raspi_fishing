@@ -21,7 +21,7 @@ def evaluate(p):
         val = 1.0 / (np.sqrt (2.0 * np.pi) * sigma) * np.exp (-dist * dist / (2.0 * sigma * sigma));
         return val
     else:
-        red_degree = 2 * r - g - b
+        red_degree = 2 * g - r - b
         # return 1.0 / (np.sqrt(2 * np.pi) * sigma) * np.exp(-red_degree / 2 * sigma * sigma)
         return max(red_degree + 10, 0) + 1
 
@@ -34,7 +34,7 @@ def next_state(p):
 def initial_state(_):
     return np.random.rand(2) * [HEIGHT, WIDTH]
 
-pf = ParticleFilter(size = 1000, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
+pf = ParticleFilter(size = 100, evaluate = evaluate, next_state = next_state, initial_state = initial_state)
 
 pf.initialize()
 ### end PF
@@ -47,7 +47,7 @@ def hit(past_point_list):
 
     print "Average_move", average_move
     #return average_move > 3
-    return average_move > 10
+    return average_move > 100
 
 def camera_check():
     # Capture Camera
@@ -67,13 +67,13 @@ if __name__ == "__main__":
     mode = "detect" # detect, fish, wait
 
     motor = Motor()
-    status = "detect" # "attract", "fish", "wait"
+    status = "attract" # "attract", "detect", "fish", "wait"
     
     ## start following
     last_sec = time.ctime()
     fps = 0
     last_point_list = []
-    display = True
+    display = False
     step = 0
 
     while(cap.isOpened()):
@@ -93,6 +93,10 @@ if __name__ == "__main__":
 
             fps += 1
 
+            if step >= 60:
+                mode = "attract"
+                continue
+            
             pf.step()
             estimate = pf.estimate()
             last_point_list.insert(0, estimate)
@@ -113,8 +117,8 @@ if __name__ == "__main__":
 
                 cv2.imshow("video", frame)
         elif mode == "attract":
-            motor.rotate_left(0.5)
-            motor.rotate_right(0.5)
+            motor.rotate_left(0.53)
+            motor.rotate_right(0.7)
             mode = "detect"
             step = 0
         elif mode == "fish":
@@ -123,6 +127,7 @@ if __name__ == "__main__":
         else:
             # start detecting if 's' is pressed
             if cv2.waitKey(10) & 0xFF == ord('s'):
+                motor.rotate_right(5)
                 mode = "detect"
                 step = 0
 
